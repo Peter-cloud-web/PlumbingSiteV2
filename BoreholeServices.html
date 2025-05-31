@@ -475,103 +475,146 @@
       </div>
     </footer>
 
-    <script>
-      // Mobile Menu Toggle
-      const menuIcon = document.getElementById("menu-icon");
-      const navMenu = document.querySelector(".nav-menu");
+   <script>
+      // Replace your existing navigation JavaScript with this improved version
 
-      menuIcon.addEventListener("click", () => {
-        navMenu.classList.toggle("active");
-      });
+// Mobile Menu Toggle
+const menuIcon = document.getElementById("menu-icon");
+const navMenu = document.querySelector(".nav-menu");
+const dropdowns = document.querySelectorAll(".nav-item.dropdown");
 
-      // Dropdown Menu on Mobile
-      const dropdowns = document.querySelectorAll(".dropdown");
+// Toggle mobile menu
+menuIcon.addEventListener("click", () => {
+  navMenu.classList.toggle("active");
+  
+  // Change menu icon
+  const icon = menuIcon.querySelector('i');
+  if (navMenu.classList.contains('active')) {
+    icon.classList.remove('fa-bars');
+    icon.classList.add('fa-times');
+  } else {
+    icon.classList.remove('fa-times');
+    icon.classList.add('fa-bars');
+  }
+});
 
-      dropdowns.forEach((dropdown) => {
-        dropdown.addEventListener("click", function (e) {
-          if (window.innerWidth <= 992) {
-            this.classList.toggle("active");
-            e.preventDefault();
-          }
-        });
-      });
-
-      // Close menu when clicking outside
-      document.addEventListener("click", function (e) {
-        if (
-          !navMenu.contains(e.target) &&
-          !menuIcon.contains(e.target) &&
-          navMenu.classList.contains("active")
-        ) {
-          navMenu.classList.remove("active");
+// Handle dropdown navigation
+dropdowns.forEach((dropdown) => {
+  const mainLink = dropdown.querySelector(".nav-link");
+  const dropdownMenu = dropdown.querySelector(".dropdown-menu");
+  
+  // Handle main dropdown link clicks
+  mainLink.addEventListener("click", function (e) {
+    // Check if we're on mobile
+    if (window.innerWidth <= 992) {
+      e.preventDefault(); // Prevent immediate navigation
+      
+      // If dropdown is already open, navigate to the main page
+      if (dropdown.classList.contains("active")) {
+        // Navigate to the main page
+        window.location.href = this.getAttribute('href');
+        return;
+      }
+      
+      // Close other dropdowns
+      dropdowns.forEach(otherDropdown => {
+        if (otherDropdown !== dropdown) {
+          otherDropdown.classList.remove("active");
         }
       });
-
-      // Smooth scroll for navigation links
-      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-          e.preventDefault();
-          
-          // Get the target element
-          const targetId = this.getAttribute('href');
-          const targetElement = document.querySelector(targetId);
-          
-          if (targetElement) {
-            // Calculate header height for offset
-            const navbar = document.querySelector('.navbar');
-            const navbarHeight = navbar.offsetHeight;
-            
-            // Calculate scroll position
-            const scrollPosition = targetElement.offsetTop - navbarHeight - 20;
-            
-            // Scroll smoothly
-            window.scrollTo({
-              top: scrollPosition,
-              behavior: 'smooth'
-            });
-            
-            // Update active tab
-            if (this.classList.contains('service-tab')) {
-              document.querySelectorAll('.service-tab').forEach(tab => {
-                tab.classList.remove('active');
-              });
-              this.classList.add('active');
-            }
-          }
-        });
+      
+      // Toggle current dropdown
+      dropdown.classList.toggle("active");
+    }
+    // On desktop, let it work normally (hover will handle dropdown)
+  });
+  
+  // Handle dropdown item clicks
+  const dropdownItems = dropdownMenu.querySelectorAll('a');
+  dropdownItems.forEach(item => {
+    item.addEventListener('click', () => {
+      // Close mobile menu when clicking dropdown items
+      navMenu.classList.remove("active");
+      const icon = menuIcon.querySelector('i');
+      icon.classList.remove('fa-times');
+      icon.classList.add('fa-bars');
+      
+      // Close all dropdowns
+      dropdowns.forEach(dropdown => {
+        dropdown.classList.remove("active");
       });
+    });
+  });
+});
 
-      // Navbar Scroll Effect
-      window.addEventListener("scroll", () => {
-        const navbar = document.querySelector(".navbar");
-        if (window.scrollY > 50) {
-          navbar.classList.add("scrolled");
-        } else {
-          navbar.classList.remove("scrolled");
-        }
-        
-        // Update active tab based on scroll position
-        const sections = document.querySelectorAll('.service-section');
-        const tabs = document.querySelectorAll('.service-tab');
-        
-        let current = '';
-        
-        sections.forEach(section => {
-          const sectionTop = section.offsetTop - 100;
-          const sectionHeight = section.offsetHeight;
-          
-          if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
-            current = '#' + section.getAttribute('id');
-          }
-        });
-        
-        tabs.forEach(tab => {
-          tab.classList.remove('active');
-          if (tab.getAttribute('href') === current) {
-            tab.classList.add('active');
-          }
-        });
-      });
+// Close menu when clicking outside
+document.addEventListener("click", function (e) {
+  if (
+    !navMenu.contains(e.target) &&
+    !menuIcon.contains(e.target) &&
+    navMenu.classList.contains("active")
+  ) {
+    navMenu.classList.remove("active");
+    const icon = menuIcon.querySelector('i');
+    icon.classList.remove('fa-times');
+    icon.classList.add('fa-bars');
+    
+    // Close all dropdowns
+    dropdowns.forEach(dropdown => {
+      dropdown.classList.remove("active");
+    });
+  }
+});
+
+// Handle window resize
+window.addEventListener('resize', function() {
+  if (window.innerWidth > 992) {
+    // Reset mobile menu on desktop
+    navMenu.classList.remove('active');
+    const icon = menuIcon.querySelector('i');
+    icon.classList.remove('fa-times');
+    icon.classList.add('fa-bars');
+    
+    // Remove active class from dropdowns
+    dropdowns.forEach(dropdown => {
+      dropdown.classList.remove('active');
+    });
+  }
+});
+
+// Project Gallery Tabs
+const tabBtns = document.querySelectorAll(".tab-btn");
+const boreholeGallery = document.getElementById("borehole-gallery");
+const poolGallery = document.getElementById("pool-gallery");
+
+tabBtns.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    tabBtns.forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const category = btn.getAttribute("data-category");
+    if (category === "borehole") {
+      boreholeGallery.classList.remove("hidden");
+      poolGallery.classList.add("hidden");
+    } else if (category === "pool") {
+      poolGallery.classList.remove("hidden");
+      boreholeGallery.classList.add("hidden");
+    }
+  });
+});
+
+// Navbar Scroll Effect
+window.addEventListener("scroll", () => {
+  const navbar = document.querySelector(".navbar");
+  if (window.scrollY > 50) {
+    navbar.classList.add("scrolled");
+  } else {
+    navbar.classList.remove("scrolled");
+  }
+});
+    </script>
+
+    <script
       
       // FAQ accordion
       const faqItems = document.querySelectorAll('.faq-item');

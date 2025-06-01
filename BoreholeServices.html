@@ -476,12 +476,91 @@
     </footer>
 
    <script>
-      // Replace your existing navigation JavaScript with this improved version
+        // Replace your existing navigation JavaScript with this improved version
+// Enhanced Navigation JavaScript with Deep Linking Support
 
 // Mobile Menu Toggle
 const menuIcon = document.getElementById("menu-icon");
 const navMenu = document.querySelector(".nav-menu");
 const dropdowns = document.querySelectorAll(".nav-item.dropdown");
+
+// Define the mapping of dropdown items to their target pages and sections
+const navigationMap = {
+  // Borehole Services sections within BoreholeServices.html
+  "Borehole Drilling": { page: "BoreholeServices.html", section: "borehole-drilling" },
+  "Borehole Maintenance": { page: "BoreholeServices.html", section: "borehole-maintenance" },
+  "Borehole Consultation": { page: "BoreholeServices.html", section: "borehole-consultation" },
+  
+  // Water Pumps sections within Pumps.html
+  "Pump Sales": { page: "Pumps.html", section: "pump-sales" },
+  "Pump Installation": { page: "Pumps.html", section: "pump-installation" },
+  "Pump Maintenance": { page: "Pumps.html", section: "pump-maintenance" },
+  
+  // Swimming Pools sections within Swimmingpools.html
+  "Swimming Pool Design": { page: "Swimmingpools.html", section: "pool-design" },
+  "Swimming Pool Construction": { page: "Swimmingpools.html", section: "pool-construction" },
+  "Swimming Pool Maintenance": { page: "Swimmingpools.html", section: "pool-maintenance" },
+  "Swimming Pool Cleaning": { page: "Swimmingpools.html", section: "pool-cleaning" },
+  
+  // Water Treatment sections within WaterTreatment.html
+  "Water Purification": { page: "WaterTreatment.html", section: "water-purification" },
+  "Water Softening": { page: "WaterTreatment.html", section: "water-softening" },
+  "Water Testing": { page: "WaterTreatment.html", section: "water-testing" }
+};
+
+// Function to navigate to a specific section
+function navigateToSection(page, section) {
+  const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+  const targetPage = page.toLowerCase();
+  
+  // Normalize current page name for comparison
+  const normalizedCurrentPage = currentPage.toLowerCase();
+  
+  if (normalizedCurrentPage === targetPage || 
+      (normalizedCurrentPage === 'index.html' && targetPage === 'index.html') ||
+      (normalizedCurrentPage === '' && targetPage === 'index.html')) {
+    // Same page - just scroll to section
+    scrollToSection(section);
+  } else {
+    // Different page - navigate with hash to load the page and scroll to section
+    window.location.href = `${page}#${section}`;
+  }
+}
+
+// Function to scroll to a specific section
+function scrollToSection(sectionId) {
+  const targetSection = document.getElementById(sectionId);
+  if (targetSection) {
+    // Add smooth scrolling with offset for fixed navbar
+    const navbar = document.querySelector('.navbar');
+    const navbarHeight = navbar ? navbar.offsetHeight : 70; // fallback height
+    const targetPosition = targetSection.offsetTop - navbarHeight - 20;
+    
+    window.scrollTo({
+      top: targetPosition,
+      behavior: 'smooth'
+    });
+    
+    // Add highlight effect to the section
+    targetSection.classList.add('section-highlight');
+    setTimeout(() => {
+      targetSection.classList.remove('section-highlight');
+    }, 2000);
+  } else {
+    console.warn(`Section with ID "${sectionId}" not found on this page.`);
+  }
+}
+
+// Function to handle page load and check for hash
+function handlePageLoad() {
+  const hash = window.location.hash.substring(1);
+  if (hash) {
+    // Wait for page to fully load, then scroll to section
+    setTimeout(() => {
+      scrollToSection(hash);
+    }, 500);
+  }
+}
 
 // Toggle mobile menu
 menuIcon.addEventListener("click", () => {
@@ -529,10 +608,26 @@ dropdowns.forEach((dropdown) => {
     // On desktop, let it work normally (hover will handle dropdown)
   });
   
-  // Handle dropdown item clicks
+  // Handle dropdown item clicks with deep linking
   const dropdownItems = dropdownMenu.querySelectorAll('a');
   dropdownItems.forEach(item => {
-    item.addEventListener('click', () => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault(); // Prevent default link behavior
+      
+      const itemText = item.textContent.trim();
+      const navigationInfo = navigationMap[itemText];
+      
+      if (navigationInfo) {
+        // Navigate to the specific section
+        navigateToSection(navigationInfo.page, navigationInfo.section);
+      } else {
+        // Fallback - navigate to href if no mapping found
+        const href = item.getAttribute('href');
+        if (href && href !== '#') {
+          window.location.href = href;
+        }
+      }
+      
       // Close mobile menu when clicking dropdown items
       navMenu.classList.remove("active");
       const icon = menuIcon.querySelector('i');
@@ -582,26 +677,28 @@ window.addEventListener('resize', function() {
   }
 });
 
-// Project Gallery Tabs
+// Project Gallery Tabs (if they exist on the page)
 const tabBtns = document.querySelectorAll(".tab-btn");
 const boreholeGallery = document.getElementById("borehole-gallery");
 const poolGallery = document.getElementById("pool-gallery");
 
-tabBtns.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    tabBtns.forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
+if (tabBtns.length > 0) {
+  tabBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      tabBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
 
-    const category = btn.getAttribute("data-category");
-    if (category === "borehole") {
-      boreholeGallery.classList.remove("hidden");
-      poolGallery.classList.add("hidden");
-    } else if (category === "pool") {
-      poolGallery.classList.remove("hidden");
-      boreholeGallery.classList.add("hidden");
-    }
+      const category = btn.getAttribute("data-category");
+      if (category === "borehole" && boreholeGallery) {
+        boreholeGallery.classList.remove("hidden");
+        if (poolGallery) poolGallery.classList.add("hidden");
+      } else if (category === "pool" && poolGallery) {
+        poolGallery.classList.remove("hidden");
+        if (boreholeGallery) boreholeGallery.classList.add("hidden");
+      }
+    });
   });
-});
+}
 
 // Navbar Scroll Effect
 window.addEventListener("scroll", () => {
@@ -610,6 +707,18 @@ window.addEventListener("scroll", () => {
     navbar.classList.add("scrolled");
   } else {
     navbar.classList.remove("scrolled");
+  }
+});
+
+// Handle page load for hash navigation
+document.addEventListener('DOMContentLoaded', handlePageLoad);
+window.addEventListener('load', handlePageLoad);
+
+// Handle browser back/forward navigation
+window.addEventListener('hashchange', () => {
+  const hash = window.location.hash.substring(1);
+  if (hash) {
+    scrollToSection(hash);
   }
 });
     </script>
